@@ -1,48 +1,61 @@
-# Sample connecting WebApp and Azure SignalR Service
-
-## Provision a SignalR Service
-
-First let's provision a SignalR service on Azure.
-> If you don't have an Azure subscription, **[start now](https://azure.microsoft.com/en-us/free/)** to create a free account.
-
-1. Open Azure portal, click "Create a resource" and search "SignalR Service".
-
-
-2. Navigate to "SignalR Service" and click "Create".
-   
-
-3. Fill in basic information including resource name, resource group and location.
+---
+page_type: sample
+languages:
+  - csharp
+products:
+  - azure
+  - service-connector
+urlFragment: serviceconnector-webapp-signalr-dotnetcore
+---
 
 
-   Resource name will also be used as the DNS name of your service endpoint. So you'll get a `<resource_name>.service.signalr.net` that your application can connect to.
+# Using Service Connecto to connect Azure WebApp and Azure SignalR Service
+The repository offers the sample codes of connecting Azure SignalR service to Azure WebApp with `system managed identity`. Follow the steps below to create and verify the connection.
 
-   Select a pricing tier. There're two pricing tiers:
-   
-   * Free: which can handle 20 connections at the same time and can send and receive 20,000 messages in a day.
-   * Standard: which has 1000 concurrent connections and one million messages per day limit for *one unit*. You can scale up to 100 units for a single service instance and you'll be charged by the number of units you use.
+## Prerequisites
 
-4. Click "Create", your SignalR service will be created in a few minutes.
+- An Azure account with an active subscription. [Create an account for free](https://azure.microsoft.com/free/?ref=microsoft.com&utm_source=microsoft.com&utm_medium=docs&utm_campaign=visualstudio).
+- Install the <a href="/cli/azure/install-azure-cli" target="_blank">Azure CLI</a> 2.18.0 or higher to provision and configure Azure resources.
+- Sign in to Azure with CLI command
 
-
-After your service is ready, go to the **Keys** page of your service instance and you'll get two connection strings that your application can use to connect to the service.
-
-## Provision an instance of webapp on portal
-
-
-## Create an connection between webapp and signalr
-
+```azurecli
+az login
 ```
-az webapp connection create signalr
+- Visual Studio Code or Visual Studio.
+
+## Create Azure Resources
+- Provision an Azure WebApp
+```azurecli
+az group create -n <myResourceGroupName> -l eastus
+az appservice plan create -g <myResourceGroupName> -n <myPlanName> --sku B1
+az webapp create -g <myResourceGroupName> -n <myAppName> --runtime "DOTNETCORE|3.1" --plan <myPlanName>
 ```
 
-## Deploy the project to webapp
-
+- Provision a SignalR Service
+```azurecli
+az signalr create -g <myResourceGroupName> -n <mySignalRName> --sku Standard_S1
 ```
+
+
+## Create an connection between Azure WebApp and SignalR
+
+```azurecli
+az webapp connection create signalr -g <myResourceGroupName> -n <myAppName> --tg <myResourceGroupName> --signalr <mySignalRName> --system-identity
+```
+
+## Deploy the project to WebApp
+
+```azurecli
 az webapp up
 ```
 
 ## validate result
-
-```
+Validate the connection by browse to your webapp `https://<myAppName>.azurewebsites.net/`.
+```azurecli
 az webapp browse
+```
+
+### Cleanup the resource
+```azurecli
+az group delete -n <myResourceGroupName> --yes
 ```
